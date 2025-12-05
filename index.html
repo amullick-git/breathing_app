@@ -79,6 +79,16 @@
 
         <!-- Controls -->
         <div class="w-full mb-4">
+            <!-- Pattern Selector -->
+            <div class="mb-4">
+                <label for="patternSelect" class="block text-xs text-slate-400 uppercase tracking-wider mb-2">Breathing
+                    Pattern</label>
+                <select id="patternSelect"
+                    class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 transition-shadow">
+                    <option value="4-7-8">4-7-8 Breathing</option>
+                    <option value="4-4-4-4">Box Breathing (4-4-4-4)</option>
+                </select>
+            </div>
             <div class="flex justify-between text-sm text-slate-400 mb-2">
                 <span>Faster</span>
                 <span id="speedLabel">Standard (19s)</span>
@@ -132,6 +142,7 @@
         const resetTimerBtn = document.getElementById('resetTimerBtn');
         const pauseBtn = document.getElementById('pauseBtn');
         const pauseText = document.getElementById('pauseText');
+        const patternSelect = document.getElementById('patternSelect');
 
         // Audio Context Setup
         let audioCtx;
@@ -152,10 +163,10 @@
         });
 
         // DISTINCT AUDIO CUES
-        function playPhaseCue(phase) {
+        function playPhaseCue(phaseIndex) {
             if (!soundToggle.checked || !audioCtx) return;
 
-            // Resume if suspended (browser policy sometimes suspends automatically)
+            // Resume if suspended
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
@@ -165,7 +176,9 @@
             const now = audioCtx.currentTime;
             let stopTime = now;
 
-            if (phase === 0) {
+            const type = patterns[currentPattern].types[phaseIndex];
+
+            if (type === 'inhale') {
                 // INHALE: Bright Chime (C5)
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(523.25, now);
@@ -176,9 +189,9 @@
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 2.5);
                 stopTime = now + 2.5;
 
-            } else if (phase === 1) {
+            } else if (type === 'hold-full' || type === 'hold-empty') {
                 // HOLD: Gentle Pulse / Soft Bell (E4)
-                osc.type = 'sine'; // Sine wave is smoother than triangle
+                osc.type = 'sine';
                 osc.frequency.setValueAtTime(329.63, now);
 
                 // Envelope: Softer attack, longer decay
@@ -187,7 +200,7 @@
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
                 stopTime = now + 1.5;
 
-            } else if (phase === 2) {
+            } else if (type === 'exhale') {
                 // EXHALE: Deep Grounding Bowl (G3)
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(196.00, now);
@@ -198,24 +211,39 @@
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 3.5);
                 stopTime = now + 3.5;
             } else {
-                return; // Invalid phase
+                return;
             }
 
             osc.connect(gain);
             gain.connect(audioCtx.destination);
 
-            // Fix: Always call start BEFORE stop
             osc.start(now);
             osc.stop(stopTime);
         }
 
         // Animation State
-        let startTime = Date.now();
+        // Start 3 seconds in the future for countdown
+        let startTime = Date.now() + 3000;
         // Session Timer State
-        let sessionStartTime = Date.now();
+        let sessionStartTime = Date.now() + 3000;
         // Pause State
         let isPaused = false;
         let pauseStart = 0;
+
+        // Breathing Patterns Configuration
+        const patterns = {
+            "4-7-8": {
+                phases: [4, 7, 8],
+                types: ['inhale', 'hold-full', 'exhale'],
+                defaultDuration: 19
+            },
+            "4-4-4-4": {
+                phases: [4, 4, 4, 4],
+                types: ['inhale', 'hold-full', 'exhale', 'hold-empty'],
+                defaultDuration: 16
+            }
+        };
+        let currentPattern = "4-7-8";
 
         // Standard 4-7-8 is 19 seconds total
         let duration = 19000;
@@ -234,11 +262,35 @@
         slider.addEventListener('input', (e) => {
             const val = parseFloat(e.target.value);
             duration = val * 1000;
-            startTime = Date.now();
+            startTime = Date.now() + 3000; // Reset with countdown
             lastPhase = -1; // Reset audio trigger
-            speedLabel.textContent = val === 19 ? `Standard (${val}s)` : `${val}s Cycle`;
+
+            const defaultDur = patterns[currentPattern].defaultDuration;
+            speedLabel.textContent = val === defaultDur ? `Standard (${val}s)` : `${val}s Cycle`;
 
             // Auto-resume if slider is moved
+            if (isPaused) togglePause();
+        });
+
+        // Handle Pattern Change
+        patternSelect.addEventListener('change', (e) => {
+            currentPattern = e.target.value;
+            const config = patterns[currentPattern];
+
+            // Update duration to the pattern's default
+            duration = config.defaultDuration * 1000;
+            slider.value = config.defaultDuration;
+
+            // Update Speed Label
+            speedLabel.textContent = `Standard (${config.defaultDuration}s)`;
+
+            // Update Title
+            document.querySelector('h1').textContent = patternSelect.options[patternSelect.selectedIndex].text;
+
+            // Reset State
+            startTime = Date.now() + 3000; // Reset with countdown
+            lastPhase = -1;
+
             if (isPaused) togglePause();
         });
 
@@ -291,7 +343,8 @@
             if (isPaused) return;
 
             const now = Date.now();
-            const totalSeconds = Math.floor((now - sessionStartTime) / 1000);
+            // Clamp to 0 if in countdown (negative)
+            const totalSeconds = Math.max(0, Math.floor((now - sessionStartTime) / 1000));
             const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
             const seconds = (totalSeconds % 60).toString().padStart(2, '0');
             sessionTimerDisplay.textContent = `${minutes}:${seconds}`;
@@ -306,87 +359,103 @@
             // Calculate time elapsed
             const now = Date.now();
             const elapsed = now - startTime;
-            const cycleTime = elapsed % duration; // Time within current cycle in ms
 
-            // Calculate phase (0 to 1) within the current cycle duration
-            const cycleProgress = cycleTime / duration;
-
-            // 4-7-8 Ratio Constants
-            // Total parts = 4 + 7 + 8 = 19
-            const inhaleRatio = 4 / 19;          // ~0.21
-            const holdRatio = 7 / 19;            // ~0.37
-            const exhaleRatio = 8 / 19;          // ~0.42
-
-            const inhaleEnd = inhaleRatio;
-            const holdEnd = inhaleRatio + holdRatio;
+            // Clear Canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             let currentSizeRatio = 0;
             let currentText = "";
             let currentOpacity = 1;
             let rotationAngle = 0;
-            let currentPhase = 0; // 0=Inhale, 1=Hold, 2=Exhale
             let countdown = 0;
+            let currentPhase = -1;
 
-            // Thresholds in milliseconds for accurate countdowns
-            const msInhale = duration * inhaleRatio;
-            const msHoldEnd = duration * holdEnd;
-
-            if (cycleProgress < inhaleEnd) {
-                // INHALE PHASE (0 -> 4)
-                currentPhase = 0;
-                currentText = "Breathe In";
-                // Normalize progress 0->1 for this phase
-                const phaseProgress = cycleProgress / inhaleEnd;
-                currentSizeRatio = easeInOutSine(phaseProgress);
+            if (elapsed < 0) {
+                // COUNTDOWN PHASE
+                currentText = "Get Ready...";
+                currentSizeRatio = 0; // Start empty
                 currentOpacity = 1;
 
-                // Countdown logic
-                countdown = Math.ceil((msInhale - cycleTime) / 1000);
+                // Calculate countdown (3, 2, 1)
+                countdown = Math.ceil(-elapsed / 1000);
 
-            } else if (cycleProgress < holdEnd) {
-                // HOLD PHASE (4 -> 11)
-                currentPhase = 1;
-                currentText = "Hold";
-                currentSizeRatio = 1; // Stay fully expanded
-
-                // Add a tiny subtle pulse during hold to feel "alive"
-                const holdPhaseProgress = (cycleProgress - inhaleEnd) / (holdEnd - inhaleEnd);
-                currentSizeRatio += Math.sin(holdPhaseProgress * Math.PI * 2) * 0.02;
-
-                // Gentle wobble effect
-                rotationAngle = Math.sin(holdPhaseProgress * Math.PI * 8) * 0.03;
-
-                currentOpacity = 0.9;
-
-                // Countdown logic
-                countdown = Math.ceil((msHoldEnd - cycleTime) / 1000);
+                // Pulse effect for countdown numbers
+                const pulseProgress = (-elapsed % 1000) / 1000;
+                // Scale text slightly
+                // We'll handle text scaling in the draw section if needed, 
+                // but for now just static size is fine or simple opacity pulse
+                currentOpacity = 0.5 + (pulseProgress * 0.5);
 
             } else {
-                // EXHALE PHASE (11 -> 19)
-                currentPhase = 2;
-                currentText = "Breathe Out";
-                // Normalize progress 0->1 for this phase
-                const phaseProgress = (cycleProgress - holdEnd) / (1 - holdEnd);
-                // Shrink from 1 down to 0
-                currentSizeRatio = 1 - easeInOutSine(phaseProgress);
-                currentOpacity = 0.8;
+                // BREATHING PHASE
+                const cycleTime = elapsed % duration; // Time within current cycle in ms
+                const cycleProgress = cycleTime / duration;
 
-                // Countdown logic
-                countdown = Math.ceil((duration - cycleTime) / 1000);
+                // Get Current Pattern Config
+                const config = patterns[currentPattern];
+                const totalUnits = config.phases.reduce((a, b) => a + b, 0);
+
+                // Calculate Ratios
+                let accumulatedRatio = 0;
+
+                for (let i = 0; i < config.phases.length; i++) {
+                    const phaseUnits = config.phases[i];
+                    const phaseRatio = phaseUnits / totalUnits;
+                    const phaseStart = accumulatedRatio;
+                    const phaseEnd = accumulatedRatio + phaseRatio;
+
+                    if (cycleProgress < phaseEnd) {
+                        currentPhase = i;
+                        const type = config.types[i];
+
+                        // Normalize progress 0->1 for this specific phase
+                        const phaseProgress = (cycleProgress - (phaseStart * duration)) / (phaseRatio * duration);
+                        const p = Math.max(0, Math.min(1, phaseProgress));
+
+                        // Countdown logic
+                        const msPhaseEnd = duration * phaseEnd;
+                        countdown = Math.ceil((msPhaseEnd - cycleTime) / 1000);
+
+                        if (type === 'inhale') {
+                            currentText = "Breathe In";
+                            currentSizeRatio = easeInOutSine(p);
+                            currentOpacity = 1;
+                        } else if (type === 'hold-full') {
+                            currentText = "Hold";
+                            currentSizeRatio = 1;
+                            currentSizeRatio += Math.sin(p * Math.PI * 2) * 0.02;
+                            rotationAngle = Math.sin(p * Math.PI * 8) * 0.03;
+                            currentOpacity = 0.9;
+                        } else if (type === 'exhale') {
+                            currentText = "Breathe Out";
+                            currentSizeRatio = 1 - easeInOutSine(p);
+                            currentOpacity = 0.8;
+                        } else if (type === 'hold-empty') {
+                            currentText = "Hold";
+                            currentSizeRatio = 0;
+                            currentSizeRatio += Math.sin(p * Math.PI * 2) * 0.01;
+                            currentOpacity = 0.7;
+                        }
+
+                        break;
+                    }
+                    accumulatedRatio += phaseRatio;
+                }
             }
 
             // Audio Trigger Logic
-            if (currentPhase !== lastPhase) {
+            // Only play audio if we are in a valid phase (>= 0)
+            if (currentPhase !== -1 && currentPhase !== lastPhase) {
                 playPhaseCue(currentPhase);
                 lastPhase = currentPhase;
+            } else if (currentPhase === -1) {
+                // Reset lastPhase during countdown so first inhale triggers
+                lastPhase = -1;
             }
 
             // Update Text (label outside box)
             breathText.textContent = currentText;
             breathText.style.opacity = currentOpacity;
-
-            // Clear Canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             // Calculate current square size
             const currentSize = baseSize + (currentSizeRatio * growthAmount);
