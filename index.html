@@ -101,7 +101,7 @@
             <div class="flex items-center justify-between mb-4">
                 <!-- Sound Toggle -->
                 <div class="flex items-center space-x-2">
-                    <input type="checkbox" id="soundToggle"
+                    <input type="checkbox" id="soundToggle" checked
                         class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 border-gray-300">
                     <label for="soundToggle" class="text-sm text-slate-500">Enable Audio Cues</label>
                 </div>
@@ -222,12 +222,12 @@
         }
 
         // Animation State
-        // Start 3 seconds in the future for countdown
-        let startTime = Date.now() + 3000;
+        let startTime = 0;
         // Session Timer State
-        let sessionStartTime = Date.now() + 3000;
+        let sessionStartTime = 0;
         // Pause State
-        let isPaused = false;
+        let isPaused = true;
+        let isFirstStart = true;
         let pauseStart = 0;
 
         // Breathing Patterns Configuration
@@ -268,8 +268,8 @@
             const defaultDur = patterns[currentPattern].defaultDuration;
             speedLabel.textContent = val === defaultDur ? `Standard (${val}s)` : `${val}s Cycle`;
 
-            // Auto-resume if slider is moved
-            if (isPaused) togglePause();
+            // Only auto-resume if we have already started
+            if (isPaused && !isFirstStart) togglePause();
         });
 
         // Handle Pattern Change
@@ -288,10 +288,11 @@
             document.querySelector('h1').textContent = patternSelect.options[patternSelect.selectedIndex].text;
 
             // Reset State
-            startTime = Date.now() + 3000; // Reset with countdown
-            lastPhase = -1;
-
-            if (isPaused) togglePause();
+            if (!isFirstStart) {
+                startTime = Date.now() + 3000;
+                lastPhase = -1;
+                if (isPaused) togglePause();
+            }
         });
 
         // Handle Session Timer Reset
@@ -306,8 +307,26 @@
             sessionTimerDisplay.textContent = "00:00";
         });
 
-        // Handle Pause
+        // Handle Pause/Start
         function togglePause() {
+            if (isFirstStart) {
+                // FIRST START LOGIC
+                initAudio();
+                isFirstStart = false;
+                isPaused = false;
+
+                // Start with countdown
+                startTime = Date.now() + 3000;
+                sessionStartTime = Date.now() + 3000;
+
+                // Update UI to Pause state
+                pauseText.textContent = "Pause";
+                pauseBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg> <span id="pauseText">Pause</span>`;
+
+                draw();
+                return;
+            }
+
             isPaused = !isPaused;
             if (isPaused) {
                 pauseText.textContent = "Resume";
@@ -333,6 +352,58 @@
         }
 
         pauseBtn.addEventListener('click', togglePause);
+
+        function resetToStart() {
+            isPaused = true;
+            isFirstStart = true;
+
+            // Set Button to "Start Session"
+            pauseBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg> <span id="pauseText">Start Session</span>`;
+
+            // Draw Initial State
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Static Box
+            const center = canvas.width / 2;
+            const offset = baseSize / 2;
+            const x = center - offset;
+            const y = center - offset;
+            const width = baseSize;
+            const height = baseSize;
+            const radius = 20;
+
+            // Glow
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = glowColor;
+
+            // Box
+            ctx.fillStyle = boxColor;
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+            ctx.fill();
+
+            // Text
+            breathText.textContent = "Ready";
+            breathText.style.opacity = 1;
+
+            // Inner Text
+            ctx.font = "bold 32px 'Segoe UI', sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillStyle = textColor;
+            ctx.fillText("Start", center, center);
+
+            ctx.shadowBlur = 0;
+        }
 
         function easeInOutSine(x) {
             return -(Math.cos(Math.PI * x) - 1) / 2;
@@ -513,7 +584,7 @@
         }
 
         // Initialize
-        draw();
+        resetToStart();
 
     </script>
 </body>
