@@ -17,6 +17,9 @@ A lightweight, web-based relaxation widget designed to help users practice guide
     *   **Hold:** Gentle Pulse / Soft Bell (E4).
     *   **Exhale:** Deep Grounding Bowl (G3).
 *   **Session Tracking:** Tracks the total duration of your current relaxation session.
+*   **Mobile Optimized:**
+    *   **Responsive Design:** The breathing box scales up to fill the screen on mobile devices while remaining compact on desktop.
+    *   **PWA Support:** Installable as a web app with a native look and feel on iOS and Android.
 
 ## Controls
 
