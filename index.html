@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,30 +8,35 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
-            background-color: #f0f9ff; /* sky-50 */
+            background-color: #f0f9ff;
+            /* sky-50 */
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow: hidden; /* Prevent scrollbars */
-            touch-action: none; /* Prevent standard touch actions for better app feel */
+            overflow: hidden;
+            /* Prevent scrollbars */
+            touch-action: none;
+            /* Prevent standard touch actions for better app feel */
         }
-        
+
         /* Custom range slider styling */
         input[type=range] {
             -webkit-appearance: none;
+            appearance: none;
             width: 100%;
             background: transparent;
         }
-        
+
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
+            appearance: none;
             height: 20px;
             width: 20px;
             border-radius: 50%;
             background: #60A5FA;
             cursor: pointer;
             margin-top: -8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
-        
+
         input[type=range]::-webkit-slider-runnable-track {
             width: 100%;
             height: 4px;
@@ -49,22 +55,25 @@
             border-radius: 1.5rem;
             background: white;
             max-height: 95vh;
-            overflow-y: auto; /* Allow scroll on very small screens if needed */
+            overflow-y: auto;
+            /* Allow scroll on very small screens if needed */
         }
     </style>
 </head>
+
 <body class="flex flex-col items-center justify-center h-screen w-screen p-4">
 
     <!-- Main Card -->
     <div id="canvas-container" class="flex flex-col items-center p-6 sm:p-8 w-full max-w-md">
-        
+
         <h1 class="text-2xl font-light text-slate-700 mb-4 tracking-wide">4-7-8 Breathing</h1>
 
         <!-- The Canvas -->
         <canvas id="breathCanvas" width="300" height="300" class="mb-6"></canvas>
 
         <!-- Dynamic Text Indicator -->
-        <div id="breathText" class="h-8 text-xl text-blue-500 font-medium tracking-wider mb-6 transition-opacity duration-300">
+        <div id="breathText"
+            class="h-8 text-xl text-blue-500 font-medium tracking-wider mb-6 transition-opacity duration-300">
             Ready...
         </div>
 
@@ -76,29 +85,26 @@
                 <span>Slower</span>
             </div>
             <!-- Range updated for 4-7-8 cycle (usually 19s total) -->
-            <input 
-                type="range" 
-                id="speedSlider" 
-                min="10" 
-                max="30" 
-                step="1" 
-                value="19" 
-                class="w-full mb-4"
-                aria-label="Breathing Speed"
-            >
-            
+            <input type="range" id="speedSlider" min="10" max="30" step="1" value="19" class="w-full mb-4"
+                aria-label="Breathing Speed">
+
             <div class="flex items-center justify-between mb-4">
                 <!-- Sound Toggle -->
                 <div class="flex items-center space-x-2">
-                    <input type="checkbox" id="soundToggle" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 border-gray-300">
+                    <input type="checkbox" id="soundToggle"
+                        class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 border-gray-300">
                     <label for="soundToggle" class="text-sm text-slate-500">Enable Audio Cues</label>
                 </div>
             </div>
 
             <!-- Pause Button -->
-            <button id="pauseBtn" class="w-full py-3 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl font-medium transition-colors flex items-center justify-center space-x-2">
-                <svg id="pauseIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+            <button id="pauseBtn"
+                class="w-full py-3 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl font-medium transition-colors flex items-center justify-center space-x-2">
+                <svg id="pauseIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                    fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z"
+                        clip-rule="evenodd" />
                 </svg>
                 <span id="pauseText">Pause</span>
             </button>
@@ -108,7 +114,8 @@
         <div class="w-full pt-4 border-t border-slate-100 flex flex-col items-center">
             <span class="text-xs text-slate-400 uppercase tracking-wider mb-1">Session Duration</span>
             <div id="sessionTimer" class="text-3xl font-light text-slate-600 font-mono mb-2">00:00</div>
-            <button id="resetTimerBtn" class="text-xs text-blue-400 hover:text-blue-600 transition-colors underline decoration-dotted">
+            <button id="resetTimerBtn"
+                class="text-xs text-blue-400 hover:text-blue-600 transition-colors underline decoration-dotted">
                 Reset Timer
             </button>
         </div>
@@ -128,7 +135,7 @@
 
         // Audio Context Setup
         let audioCtx;
-        
+
         function initAudio() {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -147,7 +154,7 @@
         // DISTINCT AUDIO CUES
         function playPhaseCue(phase) {
             if (!soundToggle.checked || !audioCtx) return;
-            
+
             // Resume if suspended (browser policy sometimes suspends automatically)
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
@@ -158,45 +165,45 @@
             const now = audioCtx.currentTime;
             let stopTime = now;
 
-            if (phase === 0) { 
+            if (phase === 0) {
                 // INHALE: Bright Chime (C5)
-                osc.type = 'sine'; 
+                osc.type = 'sine';
                 osc.frequency.setValueAtTime(523.25, now);
-                
+
                 // Envelope: Smooth attack, long decay
                 gain.gain.setValueAtTime(0, now);
-                gain.gain.linearRampToValueAtTime(0.2, now + 0.1); 
+                gain.gain.linearRampToValueAtTime(0.2, now + 0.1);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 2.5);
                 stopTime = now + 2.5;
 
-            } else if (phase === 1) { 
-                // HOLD: Distinct "Lock" / Woodblock (E4)
-                osc.type = 'triangle'; // Triangle wave adds harmonics for distinct "buzz/tick"
+            } else if (phase === 1) {
+                // HOLD: Gentle Pulse / Soft Bell (E4)
+                osc.type = 'sine'; // Sine wave is smoother than triangle
                 osc.frequency.setValueAtTime(329.63, now);
-                
-                // Envelope: Quick attack, short decay (Staccato)
-                gain.gain.setValueAtTime(0, now);
-                gain.gain.linearRampToValueAtTime(0.15, now + 0.05); 
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
-                stopTime = now + 0.6;
 
-            } else if (phase === 2) { 
+                // Envelope: Softer attack, longer decay
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.15, now + 0.2);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+                stopTime = now + 1.5;
+
+            } else if (phase === 2) {
                 // EXHALE: Deep Grounding Bowl (G3)
-                osc.type = 'sine'; 
+                osc.type = 'sine';
                 osc.frequency.setValueAtTime(196.00, now);
-                
+
                 // Envelope: Slow attack, very long decay
                 gain.gain.setValueAtTime(0, now);
-                gain.gain.linearRampToValueAtTime(0.2, now + 0.5); 
+                gain.gain.linearRampToValueAtTime(0.2, now + 0.5);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 3.5);
                 stopTime = now + 3.5;
             } else {
                 return; // Invalid phase
             }
-            
+
             osc.connect(gain);
             gain.connect(audioCtx.destination);
-            
+
             // Fix: Always call start BEFORE stop
             osc.start(now);
             osc.stop(stopTime);
@@ -211,12 +218,12 @@
         let pauseStart = 0;
 
         // Standard 4-7-8 is 19 seconds total
-        let duration = 19000; 
+        let duration = 19000;
         const baseSize = 100; // Smallest size
         const growthAmount = 100; // How much it grows
-        
+
         // Phase tracking for audio
-        let lastPhase = -1; 
+        let lastPhase = -1;
 
         // Colors
         const boxColor = 'rgba(96, 165, 250, 0.8)'; // Tailwind blue-400
@@ -227,10 +234,10 @@
         slider.addEventListener('input', (e) => {
             const val = parseFloat(e.target.value);
             duration = val * 1000;
-            startTime = Date.now(); 
+            startTime = Date.now();
             lastPhase = -1; // Reset audio trigger
             speedLabel.textContent = val === 19 ? `Standard (${val}s)` : `${val}s Cycle`;
-            
+
             // Auto-resume if slider is moved
             if (isPaused) togglePause();
         });
@@ -259,20 +266,20 @@
                 pauseText.textContent = "Pause";
                 // SVG Icon to Pause
                 pauseBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg> <span id="pauseText">Pause</span>`;
-                
+
                 // Calculate how long we were paused
                 const now = Date.now();
                 const pausedDuration = now - pauseStart;
-                
+
                 // Shift start times forward so the animation continues smoothly
                 startTime += pausedDuration;
                 sessionStartTime += pausedDuration;
-                
+
                 // Restart Loop
                 draw();
             }
         }
-        
+
         pauseBtn.addEventListener('click', togglePause);
 
         function easeInOutSine(x) {
@@ -300,7 +307,7 @@
             const now = Date.now();
             const elapsed = now - startTime;
             const cycleTime = elapsed % duration; // Time within current cycle in ms
-            
+
             // Calculate phase (0 to 1) within the current cycle duration
             const cycleProgress = cycleTime / duration;
 
@@ -309,10 +316,10 @@
             const inhaleRatio = 4 / 19;          // ~0.21
             const holdRatio = 7 / 19;            // ~0.37
             const exhaleRatio = 8 / 19;          // ~0.42
-            
+
             const inhaleEnd = inhaleRatio;
             const holdEnd = inhaleRatio + holdRatio;
-            
+
             let currentSizeRatio = 0;
             let currentText = "";
             let currentOpacity = 1;
@@ -332,7 +339,7 @@
                 const phaseProgress = cycleProgress / inhaleEnd;
                 currentSizeRatio = easeInOutSine(phaseProgress);
                 currentOpacity = 1;
-                
+
                 // Countdown logic
                 countdown = Math.ceil((msInhale - cycleTime) / 1000);
 
@@ -341,16 +348,16 @@
                 currentPhase = 1;
                 currentText = "Hold";
                 currentSizeRatio = 1; // Stay fully expanded
-                
+
                 // Add a tiny subtle pulse during hold to feel "alive"
                 const holdPhaseProgress = (cycleProgress - inhaleEnd) / (holdEnd - inhaleEnd);
                 currentSizeRatio += Math.sin(holdPhaseProgress * Math.PI * 2) * 0.02;
-                
+
                 // Gentle wobble effect
                 rotationAngle = Math.sin(holdPhaseProgress * Math.PI * 8) * 0.03;
-                
+
                 currentOpacity = 0.9;
-                
+
                 // Countdown logic
                 countdown = Math.ceil((msHoldEnd - cycleTime) / 1000);
 
@@ -363,17 +370,17 @@
                 // Shrink from 1 down to 0
                 currentSizeRatio = 1 - easeInOutSine(phaseProgress);
                 currentOpacity = 0.8;
-                
+
                 // Countdown logic
                 countdown = Math.ceil((duration - cycleTime) / 1000);
             }
-            
+
             // Audio Trigger Logic
             if (currentPhase !== lastPhase) {
                 playPhaseCue(currentPhase);
                 lastPhase = currentPhase;
             }
-            
+
             // Update Text (label outside box)
             breathText.textContent = currentText;
             breathText.style.opacity = currentOpacity;
@@ -398,7 +405,7 @@
 
             // Draw Box
             ctx.fillStyle = boxColor;
-            
+
             // Rounded Rectangle Logic
             const x = center - offset;
             const y = center - offset;
@@ -417,7 +424,7 @@
             ctx.lineTo(x, y + radius);
             ctx.quadraticCurveTo(x, y, x + radius, y);
             ctx.closePath();
-            
+
             ctx.fill();
 
             // Draw Countdown Number inside the box
@@ -441,4 +448,5 @@
 
     </script>
 </body>
+
 </html>
