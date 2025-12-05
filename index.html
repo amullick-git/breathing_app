@@ -481,7 +481,7 @@
                         const type = config.types[i];
 
                         // Normalize progress 0->1 for this specific phase
-                        const phaseProgress = (cycleProgress - (phaseStart * duration)) / (phaseRatio * duration);
+                        const phaseProgress = (cycleProgress - phaseStart) / phaseRatio;
                         const p = Math.max(0, Math.min(1, phaseProgress));
 
                         // Countdown logic
