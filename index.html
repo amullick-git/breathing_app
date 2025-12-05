@@ -73,7 +73,8 @@
 
         <!-- The Canvas -->
         <!-- The Canvas -->
-        <canvas id="breathCanvas" width="400" height="400" class="mb-6 w-full h-auto aspect-square"></canvas>
+        <canvas id="breathCanvas" width="400" height="400"
+            class="mb-6 w-full max-w-[320px] h-auto aspect-square"></canvas>
 
         <!-- Dynamic Text Indicator -->
         <div id="breathText"
@@ -251,8 +252,8 @@
 
         // Standard 4-7-8 is 19 seconds total
         let duration = 19000;
-        const baseSize = 140; // Smallest size
-        const growthAmount = 120; // How much it grows
+        const baseSize = 160; // Smallest size
+        const growthAmount = 160; // How much it grows
 
         // Phase tracking for audio
         let lastPhase = -1;
