@@ -9,7 +9,8 @@ A lightweight, web-based relaxation widget designed to help users practice guide
     *   **4-4-4-4 Box Breathing:** A focus-enhancing technique (Inhale 4s, Hold 4s, Exhale 4s, Hold 4s).
 *   **Visual Guidance:**
     *   A soft blue square expands (inhale) and contracts (exhale).
-    *   **Wobble/Pulse Effect:** The box gently pulses during "Hold" phases to signal stasis without feeling static.
+    *   **Wobble/Pulse Effect:** The box gently pulses during **both** "Hold" phases (full and empty) to signal stasis without feeling static.
+*   **Start-on-Demand:** The app starts in a "Ready" state. Clicking "Start Session" triggers a **3-2-1 Countdown** to help you settle in before the first breath.
 *   **Countdown Timer:** A large countdown timer inside the box shows seconds remaining in the current phase.
 *   **Audio Cues:** Distinct, procedurally generated sounds for each phase (no external audio files required):
     *   **Inhale:** Bright Chime (C5).
@@ -22,13 +23,13 @@ A lightweight, web-based relaxation widget designed to help users practice guide
 *   **Pattern Selector:** Switch between "4-7-8" and "Box Breathing" modes.
 *   **Speed Slider:** Adjust the total cycle duration (default 19s for 4-7-8, 16s for Box Breathing) while maintaining the correct ratios.
 *   **Pause/Resume:** Stop the animation at any point; resumes smoothly.
-*   **Audio Toggle:** Enable/disable sound effects.
+*   **Audio Toggle:** Enable/disable sound effects (Enabled by default).
 
 ## How to Run
 
 1.  Download the `index.html` file.
 2.  Open the file in any modern web browser (Chrome, Firefox, Safari, Edge).
-3.  **Note:** You must check the "Enable Audio Cues" box to hear sound (browsers require user interaction to allow audio playback).
+3.  Click **"Start Session"** to begin. Audio is enabled by default but requires this initial interaction to play.
 
 ## Customization
 

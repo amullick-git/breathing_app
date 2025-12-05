@@ -505,7 +505,10 @@
                         } else if (type === 'hold-empty') {
                             currentText = "Hold";
                             currentSizeRatio = 0;
+                            // Subtle pulse at bottom
                             currentSizeRatio += Math.sin(p * Math.PI * 2) * 0.01;
+                            // Gentle wobble
+                            rotationAngle = Math.sin(p * Math.PI * 8) * 0.03;
                             currentOpacity = 0.7;
                         }
 
